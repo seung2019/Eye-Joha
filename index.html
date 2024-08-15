@@ -156,35 +156,35 @@
 
     // Load the image model and setup the webcam
     async function init() {
-    const modelURL = URL + 'model.json';
-    const metadataURL = URL + 'metadata.json';
+      const modelURL = URL + 'model.json';
+      const metadataURL = URL + 'metadata.json';
 
-    // load the model and metadata
-    model = await tmImage.load(modelURL, metadataURL);
-    maxPredictions = model.getTotalClasses();
-    labelContainer = document.getElementById('label-container');
-}
+      // load the model and metadata
+      model = await tmImage.load(modelURL, metadataURL);
+      maxPredictions = model.getTotalClasses();
+      labelContainer = document.getElementById('label-container');
+    }
 
-async function predict() {
-    var image = document.getElementById('eye-image');
-    const prediction = await model.predict(image, false);
+    async function predict() {
+      var image = document.getElementById('eye-image');
+      const prediction = await model.predict(image, false);
 
-    // Update normal bar
-    const normalProbability = (prediction[0].probability * 100).toFixed(2);
-    $('#normal-bar').css('width', normalProbability + '%');
-    $('#normal-percent').text(normalProbability + '%');
+      // Update normal bar
+      const normalProbability = (prediction[0].probability * 100).toFixed(2);
+      $('#normal-bar').css('width', normalProbability + '%');
+      $('#normal-percent').text(normalProbability + '%');
 
-    // Update conjunctivitis bar
-    const conjunctivitisProbability = (prediction[1].probability * 100).toFixed(2);
-    $('#conjunctivitis-bar').css('width', conjunctivitisProbability + '%');
-    $('#conjunctivitis-percent').text(conjunctivitisProbability + '%');
+      // Update conjunctivitis bar
+      const conjunctivitisProbability = (prediction[1].probability * 100).toFixed(2);
+      $('#conjunctivitis-bar').css('width', conjunctivitisProbability + '%');
+      $('#conjunctivitis-percent').text(conjunctivitisProbability + '%');
 
-    // Update cataract bar
-    const cataractProbability = (prediction[2].probability * 100).toFixed(2);
-    $('#cataract-bar').css('width', cataractProbability + '%');
-    $('#cataract-percent').text(cataractProbability + '%');
-}
-      </script>
+      // Update cataract bar
+      const cataractProbability = (prediction[2].probability * 100).toFixed(2);
+      $('#cataract-bar').css('width', cataractProbability + '%');
+      $('#cataract-percent').text(cataractProbability + '%');
+    }
+  </script>
 
   </script>
 
@@ -197,4 +197,3 @@ async function predict() {
 </body>
 
 </html>
-
