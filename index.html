@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang = "ko">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -28,152 +28,180 @@
         <p class="d-flex align-items-center pl-3">백내장</p>
     </section>
     <div class="mt-3 container file-upload">
-      <div class="image-upload-wrap">
-          <input class="file-upload-input" type='file' onchange="readURL(this);" accept="image/*" />
-          <div class="drag-text">
-              <img src="img/upload.svg" class="mt-5 pt-5 upload">
-              <h3 class="mb-5 pb-5 pt-4  upload-text">얼굴 사진을 올려놓거나 눌러서 업로드하세요!</h3>
-          </div>
-      </div>
-      <div class="file-upload-content">
-          <img class="file-upload-image" id="eye-image" src="#" alt="your image" />
-          <div id="loading" class="animated bounce">
-              <div class="spinner-border" role="status">
-                  <span class="sr-only">Loading...</span>
-              </div>
-              <p class="text-center">AI 분석중...</p>
-          </div>
-          <p class="result-message"></p>
-          <div id="label-container" class="d-flex flex-column justify-content-around"></div>
-          <div id="addThis" class="addthis_inline_share_toolbox_6lz1"></div>
-
-          <div class="pt-3 image-title-wrap">
-              <button type="button p-2" class="try-again-btn" onclick="gaReload1();" data-toggle="modal" data-target="#adModal">
-                  <span class="try-again-text">다른 사진으로 재시도</span>
-              </button>
-          </div>
-      </div>
-  </div>
-  <div class="modal fade" id="adModal" tabindex="-1" role="dialog" aria-labelledby="adModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="adModalLabel">(AD)광고 - 재시도를 한번 더 눌러주세요.</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+        <div class="image-upload-wrap">
+            <input class="file-upload-input" type='file' onchange="readURL(this);" accept="image/*" />
+            <div class="drag-text">
+                <img src="img/upload.svg" class="mt-5 pt-5 upload">
+                <h3 class="mb-5 pb-5 pt-4  upload-text">눈 사진을 촬영하시거나 업로드 해주세요!</h3>
             </div>
-            <div class="modal-body d-flex justify-content-center">
-                <ins class="kakao_ad_area" style="display:none;" 
-data-ad-unit    = "DAN-t89oh3sc0ew5" 
-data-ad-width   = "300" 
-data-ad-height  = "250"></ins>
+        </div>
+        <div class="file-upload-content">
+            <img class="file-upload-image" id="eye-image" src="#" alt="your image" />
+            <div id="loading" class="animated bounce">
+                <div class="spinner-border" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
+                <p class="text-center">AI 분석중...</p>
             </div>
-            <div class="modal-footer d-flex justify-content-center">
-                <button type="button p-2" class="try-again-btn" onclick="gaReload2();">
+            <p class="result-message">
+            </p>
+            
+            
+            <div id="label-container" class="d-flex flex-column justify-content-around">
+                <div class="d-flex">
+                    <div class="eye-label d-flex align-items-center">정상</div>
+                    <div class="bar-container position-relative container">
+                        <div id="normal-box" class="normal-box"></div>
+                        <div id="normal-bar" class="d-flex justify-content-center align-items-center normal-bar">
+                            <span id="normal-percent" class="d-block percent-text">0%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex">
+                    <div class="eye-label d-flex align-items-center">결막염</div>
+                    <div class="bar-container position-relative container">
+                        <div id="conjunctivitis-box" class="conjunctivitis-box"></div>
+                        <div id="conjunctivitis-bar" class="d-flex justify-content-center align-items-center conjunctivitis-bar">
+                            <span id="conjunctivitis-percent" class="d-block percent-text">0%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex">
+                    <div class="eye-label d-flex align-items-center">백내장</div>
+                    <div class="bar-container position-relative container">
+                        <div id="cataract-box" class="cataract-box"></div>
+                        <div id="cataract-bar" class="d-flex justify-content-center align-items-center cataract-bar">
+                            <span id="cataract-percent" class="d-block percent-text">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="pt-3 image-title-wrap">
+                <button type="button p-2" class="try-again-btn" onclick="gaReload2();" data-toggle="modal" data-target="#adModal">
                     <span class="try-again-text">다른 사진으로 재시도</span>
                 </button>
             </div>
         </div>
     </div>
-</div>
-<script>
-    function gaReload1() {
-        gtag('event', '다른 사진으로 재시도 1차', {
-            'event_category': '다른 사진으로 재시도'
+    <div class="modal fade" id="adModal" tabindex="-1" role="dialog" aria-labelledby="adModalLabel" aria-hidden="true"></div>
+
+    <script>
+        function gaReload1() {
+            gtag('event', '다른 사진으로 재시도 1차', {
+                'event_category': '다른 사진으로 재시도'
+            });
+        }
+        function gaReload2() {
+            window.location.reload();
+        }
+    </script>
+    <script>
+        function readURL(input) {
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            $('.image-upload-wrap').hide();
+            $('#loading').show(); // Show loading spinner
+
+            // Hide bars and reset bar widths and text
+            $('#normal-box, #conjunctivitis-box, #cataract-box').css('display', 'none').css('width', '0%');
+            $('#normal-percent').text('0%');
+            $('#conjunctivitis-percent').text('0%');
+            $('#cataract-percent').text('0%');
+
+            $('.file-upload-image').attr('src', e.target.result);
+            $('.file-upload-content').show();
+            $('.image-title').html(input.files[0].name);
+        };
+        reader.readAsDataURL(input.files[0]);
+        init().then(function() {
+            predict().then(function() {
+                $('#loading').hide(); // Hide loading spinner
+                $('#normal-box, #conjunctivitis-box, #cataract-box').show(); // Show the boxes
+                $('#normal-bar, #conjunctivitis-bar, #cataract-bar').fadeIn(); // Show bars with fade effect after loading
+                $('#label-container').fadeIn(); // Show the label container with fade effect
+            });
         });
+    } else {
+        removeUpload();
     }
-    function gaReload2() {
-        gtag('event', '다른 사진으로 재시도 2차', {
-            'event_category': '다른 사진으로 재시도'
+}
+
+  
+        function directResetUpload() {
+            var fileInput = document.querySelector('.file-upload-input');
+            fileInput.value = "";
+            var fileUploadContent = document.querySelector('.file-upload-content');
+            fileUploadContent.style.display = 'none';
+            var imageUploadWrap = document.querySelector('.image-upload-wrap');
+            imageUploadWrap.style.display = 'block';
+        }
+  
+        function removeUpload() {
+            $('.file-upload-input').replaceWith($('.file-upload-input').clone());
+            $('.file-upload-content').hide();
+            $('.image-upload-wrap').show();
+        }
+        $('.image-upload-wrap').bind('dragover', function() {
+            $('.image-upload-wrap').addClass('image-dropping');
         });
-        window.location.reload();
-    }
-</script>
+        $('.image-upload-wrap').bind('dragleave', function() {
+            $('.image-upload-wrap').removeClass('image-dropping');
+        });
+    </script>
     <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
-    <script>
-      function readURL(input) {
-          if (input.files && input.files[0]) {
-              var reader = new FileReader();
-              reader.onload = function(e) {
-                  $('.image-upload-wrap').hide();
-                  $('#loading').show();
-                  $('.file-upload-image').attr('src', e.target.result);
-                  $('.file-upload-content').show();
-                  $('.image-title').html(input.files[0].name);
-              };
-              reader.readAsDataURL(input.files[0]);
-              init().then(function() {
-                  console.log("hello");
-                  predict();
-                  $('#loading').hide();
-              });
-          } else {
-              removeUpload();
-          }
-      }
+    <script type="text/javascript">
+        // More API functions here:
+        // https://github.com/googlecreativelab/teachablemachine-community/tree/master/libraries/image
+    
+        // the link to your model provided by Teachable Machine export panel
+        // the link to your model provided by Teachable Machine export panel
+const URL = 'https://teachablemachine.withgoogle.com/models/vdi4AaZai/';
 
-      function directResetUpload() {
-          var fileInput = document.querySelector('.file-upload-input');
-          fileInput.value = "";
-          var fileUploadContent = document.querySelector('.file-upload-content');
-          fileUploadContent.style.display = 'none';
-          var imageUploadWrap = document.querySelector('.image-upload-wrap');
-          imageUploadWrap.style.display = 'block';
-      }
+let model, labelContainer, maxPredictions;
 
-      function removeUpload() {
-          $('.file-upload-input').replaceWith($('.file-upload-input').clone());
-          $('.file-upload-content').hide();
-          $('.image-upload-wrap').show();
-      }
-      $('.image-upload-wrap').bind('dragover', function() {
-          $('.image-upload-wrap').addClass('image-dropping');
-      });
-      $('.image-upload-wrap').bind('dragleave', function() {
-          $('.image-upload-wrap').removeClass('image-dropping');
-      });
-  </script>
-  <script type="text/javascript">
-    // More API functions here:
-    // https://github.com/googlecreativelab/teachablemachine-community/tree/master/libraries/image
+// Load the image model and setup the webcam
+async function init() {
+    const modelURL = URL + 'model.json';
+    const metadataURL = URL + 'metadata.json';
 
-    // the link to your model provided by Teachable Machine export panel
-    const URL = 'https://teachablemachine.withgoogle.com/models/vdi4AaZai/';
+    // load the model and metadata
+    model = await tmImage.load(modelURL, metadataURL);
+    maxPredictions = model.getTotalClasses();
+    labelContainer = document.getElementById('label-container');
+}
 
-    let model, webcam, labelContainer, maxPredictions;
+async function predict() {
+    var image = document.getElementById('eye-image');
+    const prediction = await model.predict(image, false);
 
-    // Load the image model and setup the webcam
-    async function init() {
-        const modelURL = URL + 'model.json';
-        const metadataURL = URL + 'metadata.json';
+    // Update normal bar
+    const normalProbability = (prediction[0].probability * 100).toFixed(2);
+    $('#normal-bar').css('width', normalProbability + '%');
+    $('#normal-percent').text(normalProbability + '%');
 
-        // load the model and metadata
-        // Refer to tmImage.loadFromFiles() in the API to support files from a file picker
-        // or files from your local hard drive
-        // Note: the pose library adds "tmImage" object to your window (window.tmImage)
-        model = await tmImage.load(modelURL, metadataURL);
-        maxPredictions = model.getTotalClasses();
-        labelContainer = document.getElementById('label-container');
-        for (let i = 0; i < maxPredictions; i++) {
-            // and class labels
-            labelContainer.appendChild(document.createElement('div'));
-        }
-    }
-    // run the webcam image through the image model
-    async function predict() {
-        // predict can take in an image, video or canvas html element
-        var image = document.getElementById('eye-image');
-        const prediction = await model.predict(image, false);
-        for (let i = 0; i < maxPredictions; i++) {
-            const classPrediction =
-                prediction[i].className + ': ' + prediction[i].probability.toFixed(2);
-            labelContainer.childNodes[i].innerHTML = classPrediction;
-        }
-    }
-  </script>
+    // Update conjunctivitis bar
+    const conjunctivitisProbability = (prediction[1].probability * 100).toFixed(2);
+    $('#conjunctivitis-bar').css('width', conjunctivitisProbability + '%');
+    $('#conjunctivitis-percent').text(conjunctivitisProbability + '%');
+
+    // Update cataract bar
+    const cataractProbability = (prediction[2].probability * 100).toFixed(2);
+    $('#cataract-bar').css('width', cataractProbability + '%');
+    $('#cataract-percent').text(cataractProbability + '%');
+}
+      </script>
+
+    <footer class="footer">
+        <div>
+            <p>@ JUDUIT 2024. All Rights Reserved.</p>
+        </div>
+    </footer>
+
 </body>
 </html>
+
