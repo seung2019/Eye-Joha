@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Gothic+A1&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
   <title>결막염 / 백내장 자가진단 테스트</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style1.css">
 </head>
 
 <body>
@@ -25,20 +25,33 @@
   <h3 class="pb-2 d-flex justify-content-center">자가진단할 테스트를 선택해주세요</h3>
 
   <section class="d-flex justify-content-center">
-    <p class="d-flex align-items-center pr-3">결막염</p>
-    <div>
-      <input type="checkbox" id="gender">
-      <label for="gender"><span class="knob"></span></label>
+    <div class="radio-group">
+      <!-- 결막염 선택 -->
+      <div class="radio-option">
+        <input type="radio" id="conjunctivitis" name="diagnosis" value="conjunctivitis">
+        <label for="conjunctivitis">
+          <span class="radio-button"></span>
+          <span class="radio-label">결막염</span>
+        </label>
+      </div>
+  
+      <!-- 백내장 선택 -->
+      <div class="radio-option">
+        <input type="radio" id="cataract" name="diagnosis" value="cataract">
+        <label for="cataract">
+          <span class="radio-button"></span>
+          <span class="radio-label">백내장</span>
+        </label>
+      </div>
     </div>
-    <p class="d-flex align-items-center pl-3">백내장</p>
   </section>
 
   <div class="mt-3 container file-upload">
     <div class="image-upload-wrap">
-      <input class="file-upload-input" type='file' onchange="readURL(this);" accept="image/*" />
+      <input class="file-upload-input" type='file' onchange="checkRadioSelection(this);" accept="image/*" />
       <div class="drag-text">
         <img src="img/upload.svg" class="mt-5 pt-5 upload">
-        <h3 class="mb-5 pb-5 pt-4  upload-text">눈 사진을 촬영하시거나 업로드 해주세요!</h3>
+        <h3 class="mb-5 pb-5 pt-4 upload-text">눈 사진을 촬영하시거나 업로드 해주세요!</h3>
       </div>
     </div>
 
@@ -50,150 +63,248 @@
         </div>
         <p class="text-center">AI 분석중...</p>
       </div>
-      <p class="result-message"></p>
 
-      <div id="label-container" class="d-flex flex-column justify-content-around">
-        <div class="d-flex">
-          <div class="eye-label d-flex align-items-center">정상</div>
-          <div class="bar-container position-relative container">
-            <div id="normal-box" class="normal-box"></div>
-            <div id="normal-bar" class="d-flex justify-content-center align-items-center normal-bar">
-              <span id="normal-percent" class="d-block percent-text">0%</span>
+      <div id="result-container" style="display: none;">
+        <p class="result-message"></p>
+
+        <div id="label-container" class="d-flex flex-column justify-content-around">
+          <!-- 정상 바 -->
+          <div id="normal-bar-container" class="d-flex align-items-center">
+            <div class="eye-label">정상</div>
+            <div class="bar-container position-relative container">
+              <div id="normal-box" class="probability-box"></div>
+              <div id="normal-bar" class="probability-bar">
+                <span id="normal-percent" class="percent-text">0%</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 결막염 바 -->
+          <div id="conjunctivitis-bar-container" class="d-flex align-items-center">
+            <div class="eye-label">결막염</div>
+            <div class="bar-container position-relative container">
+              <div id="conjunctivitis-box" class="probability-box"></div>
+              <div id="conjunctivitis-bar" class="probability-bar">
+                <span id="conjunctivitis-percent" class="percent-text">0%</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 백내장 바 -->
+          <div id="cataract-bar-container" class="d-flex align-items-center">
+            <div class="eye-label">백내장</div>
+            <div class="bar-container position-relative container">
+              <div id="cataract-box" class="probability-box"></div>
+              <div id="cataract-bar" class="probability-bar">
+                <span id="cataract-percent" class="percent-text">0%</span>
+              </div>
             </div>
           </div>
         </div>
-        <div class="d-flex">
-          <div class="eye-label d-flex align-items-center">결막염</div>
-          <div class="bar-container position-relative container">
-            <div id="conjunctivitis-box" class="conjunctivitis-box"></div>
-            <div id="conjunctivitis-bar" class="d-flex justify-content-center align-items-center conjunctivitis-bar">
-              <span id="conjunctivitis-percent" class="d-block percent-text">0%</span>
-            </div>
-          </div>
+
+
+
+        <div id="result-video-container"></div> <!-- 추가된 유튜브 영상 표시 영역 -->
+
+        <div class="pt-3 image-title-wrap">
+          <button type="button p-2" class="try-again-btn" onclick="gaReload2();" data-toggle="modal"
+            data-target="#adModal">
+            <span class="try-again-text">다른 사진으로 재시도</span>
+          </button>
         </div>
-        <div class="d-flex">
-          <div class="eye-label d-flex align-items-center">백내장</div>
-          <div class="bar-container position-relative container">
-            <div id="cataract-box" class="cataract-box"></div>
-            <div id="cataract-bar" class="d-flex justify-content-center align-items-center cataract-bar">
-              <span id="cataract-percent" class="d-block percent-text">0%</span>
-            </div>
-          </div>
+
+        <div class="pt-3 image-title-wrap">
+          <button type="button p-2" class="try-again-btn" onclick="gaReload2();" data-toggle="modal"
+            data-target="#adModal">
+            <span class="try-again-text">주변 안과 찾기</span>
+          </button>
         </div>
+        <h4 class="mt-1 text-center">*사진은 절대 어디에도 저장되지 않습니다*</h4>
       </div>
 
-      <div class="pt-3 image-title-wrap">
-        <button type="button p-2" class="try-again-btn" onclick="gaReload2();" data-toggle="modal"
-          data-target="#adModal">
-          <span class="try-again-text">다른 사진으로 재시도</span>
-        </button>
+      <div class="modal fade" id="adModal" tabindex="-1" role="dialog" aria-labelledby="adModalLabel"
+        aria-hidden="true">
       </div>
 
-      <div class="pt-3 image-title-wrap">
-        <button type="button p-2" class="try-again-btn" onclick="gaReload2();" data-toggle="modal"
-          data-target="#adModal">
-          <span class="try-again-text">주변 안과 찾기</span>
-        </button>
-      </div>
+      <script>
+        function gaReload2() {
+          window.location.reload();
+        }
 
-    </div>
-  </div>
-  <div class="modal fade" id="adModal" tabindex="-1" role="dialog" aria-labelledby="adModalLabel" aria-hidden="true">
-  </div>
+        function toggleBars() {
+          const selectedDiagnosis = document.querySelector('input[name="diagnosis"]:checked').value;
 
-  <script>
-    function gaReload2() {
-      window.location.reload();
-    }
-  </script>
-  <script>
-    function readURL(input) {
-      if (input.files && input.files[0]) {
-        var reader = new FileReader();
-        reader.onload = function (e) {
-          $('.image-upload-wrap').hide();
-          $('#loading').show();
-          $('.file-upload-image').attr('src', e.target.result);
-          $('.file-upload-content').show();
-          $('.image-title').html(input.files[0].name);
-        };
-        reader.readAsDataURL(input.files[0]);
-        init().then(function () {
-          console.log("hello");
-          predict();
-          $('#loading').hide();
+          // 모든 바를 처음에 숨기기
+          document.getElementById('normal-bar-container').style.display = 'none';
+          document.getElementById('conjunctivitis-bar-container').style.display = 'none';
+          document.getElementById('cataract-bar-container').style.display = 'none';
+          document.getElementById('result-video-container').innerHTML = '';  // 비디오도 숨기기
+
+          // 선택에 따라 관련 바를 표시하기
+          if (selectedDiagnosis === "conjunctivitis") {
+            document.getElementById('normal-bar-container').style.display = 'flex';
+            document.getElementById('conjunctivitis-bar-container').style.display = 'flex';
+            document.getElementById('result-video-container').innerHTML = `
+                    <h4 class="mt-1 text-center">*결막염 예방 영상*</h4>
+                    <iframe width="100%" height="315" src="https://www.youtube.com/embed/ME4x0KRmiEE?si=NWaWcmT6aPgsxyiZ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                `;
+          } else if (selectedDiagnosis === "cataract") {
+            document.getElementById('normal-bar-container').style.display = 'flex';
+            document.getElementById('cataract-bar-container').style.display = 'flex';
+            document.getElementById('result-video-container').innerHTML = `
+                    <h4 class="mt-1 text-center">*백내장 예방 영상*</h4>
+                    <iframe width="100%" height="315" src="https://www.youtube.com/embed/ikUj9UGAU7Q?si=ktGU8uqsPC4l9yWl" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                `;
+          }
+        }
+
+        // 라디오 버튼 이벤트 리스너
+        document.querySelectorAll('input[name="diagnosis"]').forEach((elem) => {
+          elem.addEventListener("change", toggleBars);
         });
-      } else {
-        removeUpload();
-      }
-    }
 
-    function removeUpload() {
-      $('.file-upload-input').replaceWith($('.file-upload-input').clone());
-      $('.file-upload-content').hide();
-      $('.image-upload-wrap').show();
-    }
-    $('.image-upload-wrap').bind('dragover', function () {
-      $('.image-upload-wrap').addClass('image-dropping');
-    });
-    $('.image-upload-wrap').bind('dragleave', function () {
-      $('.image-upload-wrap').removeClass('image-dropping');
-    });
-  </script>
-  <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"></script>
-  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
-  <script type="text/javascript">
-    // More API functions here:
-    // https://github.com/googlecreativelab/teachablemachine-community/tree/master/libraries/image
+        // 파일 선택 시 라디오 버튼 선택 확인
+        function checkRadioSelection(input) {
+          const selectedDiagnosis = document.querySelector('input[name="diagnosis"]:checked');
+          if (!selectedDiagnosis) {
+            alert("결막염 또는 백내장 버튼을 클릭해주세요.");
+            removeUpload();
+            return;
+          }
+          readURL(input);
+        }
 
-    // the link to your model provided by Teachable Machine export panel
-    // the link to your model provided by Teachable Machine export panel
-    const URL = 'https://teachablemachine.withgoogle.com/models/vdi4AaZai/';
+        function readURL(input) {
+          if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+              $('.image-upload-wrap').hide();
+              $('#loading').show();
+              $('#result-container').hide(); // 결과 컨테이너 숨기기
+              $('.file-upload-image').attr('src', e.target.result);
+              $('.file-upload-content').show();
+              $('.image-title').html(input.files[0].name);
+            };
+            reader.readAsDataURL(input.files[0]);
 
-    let model, labelContainer, maxPredictions;
+            // 1분 타이머 설정
+            var timeoutId = setTimeout(function () {
+              $('#loading').hide();
+              alert("1분 이상 결과가 나오지 않았습니다. 다른 사진으로 재시도 해주세요.");
+              removeUpload();
+            }, 60000);
 
-    // Load the image model and setup the webcam
-    async function init() {
-      const modelURL = URL + 'model.json';
-      const metadataURL = URL + 'metadata.json';
+            init().then(function () {
+              console.log("Model initialized");
+              predict();
+              clearTimeout(timeoutId);
+            });
+          } else {
+            removeUpload();
+          }
+        }
 
-      // load the model and metadata
-      model = await tmImage.load(modelURL, metadataURL);
-      maxPredictions = model.getTotalClasses();
-      labelContainer = document.getElementById('label-container');
-    }
+        function removeUpload() {
+          $('.file-upload-input').replaceWith($('.file-upload-input').clone());
+          $('.file-upload-content').hide();
+          $('.image-upload-wrap').show();
+        }
 
-    async function predict() {
-      var image = document.getElementById('eye-image');
-      const prediction = await model.predict(image, false);
+        $('.image-upload-wrap').bind('dragover', function () {
+          $('.image-upload-wrap').addClass('image-dropping');
+        });
 
-      // Update normal bar
-      const normalProbability = (prediction[0].probability * 100).toFixed(2);
-      $('#normal-bar').css('width', normalProbability + '%');
-      $('#normal-percent').text(normalProbability + '%');
+        $('.image-upload-wrap').bind('dragleave', function () {
+          $('.image-upload-wrap').removeClass('image-dropping');
+        });
 
-      // Update conjunctivitis bar
-      const conjunctivitisProbability = (prediction[1].probability * 100).toFixed(2);
-      $('#conjunctivitis-bar').css('width', conjunctivitisProbability + '%');
-      $('#conjunctivitis-percent').text(conjunctivitisProbability + '%');
+        window.onload = function () {
+          document.getElementById('normal-bar').style.display = 'none';
+          document.getElementById('conjunctivitis-bar').style.display = 'none';
+          document.getElementById('cataract-bar').style.display = 'none';
+        };
+      </script>
+      <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"></script>
+      <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
+      <script
+        src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
+      <script type="text/javascript">
+        // Teachable Machine 모델 URL
+        const URL = 'https://teachablemachine.withgoogle.com/models/vdi4AaZai/';
 
-      // Update cataract bar
-      const cataractProbability = (prediction[2].probability * 100).toFixed(2);
-      $('#cataract-bar').css('width', cataractProbability + '%');
-      $('#cataract-percent').text(cataractProbability + '%');
-    }
-  </script>
+        let model, labelContainer, maxPredictions;
 
-  </script>
+        // 모델 초기화
+        async function init() {
+          const modelURL = URL + 'model.json';
+          const metadataURL = URL + 'metadata.json';
 
-  <footer class="footer">
-    <div>
-      <p>@ JUDUIT 2024. All Rights Reserved.</p>
-    </div>
-  </footer>
+          model = await tmImage.load(modelURL, metadataURL);
+          maxPredictions = model.getTotalClasses();
+        }
+
+        // 예측 함수
+        async function predict() {
+          var image = document.getElementById('eye-image');
+          const prediction = await model.predict(image, false);
+
+          const normalProbability = (prediction[0].probability * 100).toFixed(2);
+          $('#normal-bar').css('width', normalProbability + '%');
+          $('#normal-percent').text(normalProbability + '%');
+
+          const conjunctivitisProbability = (prediction[1].probability * 100).toFixed(2);
+          $('#conjunctivitis-bar').css('width', conjunctivitisProbability + '%');
+          $('#conjunctivitis-percent').text(conjunctivitisProbability + '%');
+
+          const cataractProbability = (prediction[2].probability * 100).toFixed(2);
+          $('#cataract-bar').css('width', cataractProbability + '%');
+          $('#cataract-percent').text(cataractProbability + '%');
+
+          var resultTitle = "";
+          var resultExplain = "";
+          var resultCeleb = "";
+          var resultClass = "";
+
+          if (conjunctivitisProbability > 50) {
+            resultTitle = "결막염 의심";
+            resultExplain = "눈의 충혈과 분비물이 증가하는 결막염 증상이 의심됩니다.<br>전문의의 진단을 받으시는 것을 권장드립니다";
+            resultCeleb = "해당 증상이 지속되면 즉시 병원을 방문하여 치료를 받으세요";
+            resultClass = "result-conjunctivitis";
+          } else if (cataractProbability > 50) {
+            resultTitle = "백내장 의심";
+            resultExplain = "백내장 증상이 의심됩니다.<br>시력 저하 및 눈부심/단안 복시가 있을시<br><주변 안과 찾기>를 통해 조속한 검진을 권장드립니다";
+            resultCeleb = "해당 증상이 지속되면 즉시 병원을 방문하여 치료를 받으세요";
+            resultClass = "result-cataract";
+          } else {
+            resultTitle = "정상";
+            resultExplain = "눈에 특별한 이상이 발견되지 않았습니다";
+            resultCeleb = "하지만 정기적인 검진을 통해 눈 건강을 확인해주세요";
+            resultClass = "result-normal";
+          }
+
+          var title = "<div class='result-title'>" + resultTitle + "</div>";
+          var explain = "<div class='result-explain pt-2'>" + resultExplain + "</div>";
+          var celeb = "<div class='result-celeb pt-2 pb-2'>" + resultCeleb + "</div>";
+
+          $('.result-message').attr('class', 'result-message ' + resultClass).html(title + explain + celeb);
+
+          // 로딩 숨기기
+          $('#loading').hide();
+
+          // 결과 표시
+          $('#result-container').show();
+        }
+      </script>
+
+
+      <footer class="footer">
+        <div>
+          <p>@ JUDUIT 2024. All Rights Reserved.</p>
+        </div>
+      </footer>
 
 </body>
 
 </html>
+
