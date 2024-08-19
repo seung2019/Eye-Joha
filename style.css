@@ -1,14 +1,24 @@
 :root {
   --primary-green: #3ba363;
   --light-green: #e2f7e2;
-  --dark-green: #aec7e7;
+  --dark-green: #2d8f4e;
   --background-green: #f0f9f0;
+  --normal-color: rgba(0, 128, 0, 0.8);
+  --conjunctivitis-color: rgba(255, 71, 86, 0.8);
+  --cataract-color: rgba(0, 0, 255, 0.8);
 }
 
 body {
   font-family: 'Do Hyeon', sans-serif;
   background-color: var(--background-green);
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+  flex: 1;
 }
 
 .file-upload {
@@ -25,10 +35,12 @@ body {
 }
 
 .eye-label {
-  width: 30%;
+  width: 10%;
   text-align: right;
   padding-right: 10px;
   font-weight: bold;
+  font-size: 1.1rem;
+  color: #333;
 }
 
 .file-upload-btn {
@@ -120,7 +132,6 @@ body {
   border-radius: 40px;
   border: solid 1.5px #35465d;
   background-color: #35465d;
-  border-color: var(--dark-green);
 }
 
 .try-again-text {
@@ -152,13 +163,8 @@ body {
   text-align: center;
 }
 
-.subtitle {
-  line-height: 1.53;
-  text-align: center;
-  color: #35465d;
-}
 
-@media screen and (max-width: 600px) {
+@media screen and (max-width: 768px) {
   html {
     font-size: 10px;
   }
@@ -166,6 +172,37 @@ body {
   .navbar-brand {
     font-size: 2rem;
   }
+
+  .file-upload {
+    padding: 10% 3%;
+  }
+
+  .image-upload-wrap {
+    width: 90%;
+  }
+
+  .upload-text {
+    width: 80%;
+    font-size: 1.2rem;
+  }
+
+  #label-container {
+    visibility: hidden;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .diagnosis-container {
+    visibility: hidden;
+    margin-bottom: 10px;
+  }
+
+  iframe {
+    width: 90%;
+    height: 50.625vw;
+  }
+
 }
 
 .upload {
@@ -189,6 +226,7 @@ body {
   bottom: 0;
   width: 100%;
   font-size: 1rem;
+  margin-top: auto;
 }
 
 .label-text {
@@ -240,17 +278,12 @@ input[type="radio"] {
   cursor: pointer;
 }
 
-/* 선택된 radio 버튼 스타일 */
-input[type="radio"]:checked + .custom-radio {
-  background-color: #ff812d;
-}
 
 /* 라벨 텍스트 스타일 */
 .radio-label {
   display: flex;
   align-items: center;
   font-size: 1.2rem;
-  color: #333;
   cursor: pointer;
 }
 
@@ -261,6 +294,8 @@ input[type="radio"]:checked + .custom-radio {
 }
 
 .radio-option {
+  display: flex;
+  align-items: center;
   position: relative;
 }
 
@@ -283,6 +318,7 @@ input[type="radio"]:checked + .custom-radio {
   display: inline-block;
   position: relative;
   margin-right: 10px;
+  background-color: white; /* 흰색 배경을 확실히 하기 위해 추가 */
 }
 
 .radio-button::after {
@@ -305,30 +341,14 @@ input[type="radio"]:checked + .custom-radio {
 
 
 .radio-option input[type="radio"]:focus + label .radio-button {
-  box-shadow: 0 0 0 3px rgba(59, 163, 99, 0.3);
+  box-shadow: none;
 }
 
 .radio-option:hover .radio-button {
   border-color: #2d8f4e;
 }
 
-/* 선택된 radio 버튼 내부의 점 스타일 */
-.custom-radio::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 10px;
-  height: 10px;
-  background-color: #ff3f1e;
-  border-radius: 50%;
-  transform: translate(-50%, -50%) scale(0);
-  transition: all 0.3s ease;
-}
 
-input[type="radio"]:checked + .custom-radio::after {
-  transform: translate(-50%, -50%) scale(1);
-}
 
 .ad-banner {
   max-width: 320px;
@@ -363,6 +383,7 @@ input[type="radio"]:checked + .custom-radio::after {
   background-color: #f0f0f0;
   border-radius: 15px;
   overflow: hidden;
+  margin-bottom: 15px;
 }
 
 .bar {
@@ -401,11 +422,6 @@ input[type="radio"]:checked + .custom-radio::after {
   padding-right: 10px;
 }
 
-.condition-label {
-  font-weight: bold;
-  margin-bottom: 10px;
-  color: #35465d;
-}
 
 .normal-box{
   position: absolute;
@@ -426,19 +442,9 @@ input[type="radio"]:checked + .custom-radio::after {
   color: #000000;
 }
 
-.normal-bar {
-  background-color: rgba(76, 175, 80, 1); /* Green for normal */
-}
-
-
-.conjunctivitis-bar {
-  background-color: rgb(255, 71, 86); /* Red for conjunctivitis */
-}
-
-
-.cataract-bar {
-  background-color: rgb(250, 21, 21); /* Blue for cataract */
-}
+.normal-bar { background-color: var(--normal-color); }
+.conjunctivitis-bar { background-color: var(--conjunctivitis-color); }
+.cataract-bar { background-color: var(--cataract-color); }
 
 .position-relative {
   position: relative !important;
@@ -499,6 +505,14 @@ iframe {
   max-height: 400px; /* 더 큰 화면에서는 높이를 315px로 제한 */
   border: none; /* 테두리 제거 */
   margin-bottom: 20px; /* iframe 아래에 약간의 공간 추가 */
+}
+
+/* 바 컨테이너 초기 숨김 상태 */
+#conjunctivitis-bar-container{
+  display: none;
+}
+#cataract-bar-container {
+  display: none;
 }
 
 #normal-box { background-color: rgba(0, 128, 0, 0.2); }
