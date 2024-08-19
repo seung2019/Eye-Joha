@@ -26,7 +26,6 @@
 
   <section class="d-flex justify-content-center">
     <div class="radio-group">
-      <!-- 결막염 선택 -->
       <div class="radio-option">
         <input type="radio" id="conjunctivitis" name="diagnosis" value="conjunctivitis">
         <label for="conjunctivitis">
@@ -34,8 +33,6 @@
           <span class="radio-label">결막염</span>
         </label>
       </div>
-
-      <!-- 백내장 선택 -->
       <div class="radio-option">
         <input type="radio" id="cataract" name="diagnosis" value="cataract">
         <label for="cataract">
@@ -69,31 +66,31 @@
 
         <div id="label-container" class="d-flex flex-column justify-content-around">
           <!-- 정상 바 -->
-          <div id="normal-bar-container" class="d-flex align-items-center">
-            <div class="eye-label">정상</div>
-            <div class="bar-container position-relative container">
+          <div id="normal-container" class="diagnosis-container d-flex align-items-center">
+            <div class="eye-label mr-2">정상</div>
+            <div class="bar-container position-relative flex-grow-1">
               <div id="normal-box" class="probability-box"></div>
               <div id="normal-bar" class="probability-bar">
                 <span id="normal-percent" class="percent-text">0%</span>
               </div>
             </div>
           </div>
-
+        
           <!-- 결막염 바 -->
-          <div id="conjunctivitis-bar-container" class="d-flex align-items-center">
-            <div class="eye-label">결막염</div>
-            <div class="bar-container position-relative container">
+          <div id="conjunctivitis-container" class="diagnosis-container d-flex align-items-center">
+            <div class="eye-label mr-2">결막염</div>
+            <div class="bar-container position-relative flex-grow-1">
               <div id="conjunctivitis-box" class="probability-box"></div>
               <div id="conjunctivitis-bar" class="probability-bar">
                 <span id="conjunctivitis-percent" class="percent-text">0%</span>
               </div>
             </div>
           </div>
-
+        
           <!-- 백내장 바 -->
-          <div id="cataract-bar-container" class="d-flex align-items-center">
-            <div class="eye-label">백내장</div>
-            <div class="bar-container position-relative container">
+          <div id="cataract-container" class="diagnosis-container d-flex align-items-center">
+            <div class="eye-label mr-2">백내장</div>
+            <div class="bar-container position-relative flex-grow-1">
               <div id="cataract-box" class="probability-box"></div>
               <div id="cataract-bar" class="probability-bar">
                 <span id="cataract-percent" class="percent-text">0%</span>
@@ -101,8 +98,6 @@
             </div>
           </div>
         </div>
-
-
 
         <div id="result-video-container"></div> <!-- 추가된 유튜브 영상 표시 영역 -->
 
@@ -131,30 +126,23 @@
         }
 
         function toggleBars() {
-          const selectedDiagnosis = document.querySelector('input[name="diagnosis"]:checked').value;
+          selectedDiagnosis = document.querySelector('input[name="diagnosis"]:checked').value;
 
           // 모든 바를 처음에 숨기기
-          document.getElementById('normal-bar-container').style.display = 'none';
-          document.getElementById('conjunctivitis-bar-container').style.display = 'none';
-          document.getElementById('cataract-bar-container').style.display = 'none';
-          document.getElementById('result-video-container').innerHTML = '';  // 비디오도 숨기기
+          $('#normal-bar-container, #conjunctivitis-bar-container, #cataract-bar-container').hide();
+          // 정상 바는 항상 표시
+          $('#normal-bar-container').show();
 
-          // 선택에 따라 관련 바를 표시하기
+          // 선택된 진단에 따라 해당 바 표시
           if (selectedDiagnosis === "conjunctivitis") {
-            document.getElementById('normal-bar-container').style.display = 'flex';
-            document.getElementById('conjunctivitis-bar-container').style.display = 'flex';
-            document.getElementById('result-video-container').innerHTML = `
-                    <h4 class="mt-1 text-center">*결막염 예방 영상*</h4>
-                    <iframe width="100%" height="315" src="https://www.youtube.com/embed/ME4x0KRmiEE?si=NWaWcmT6aPgsxyiZ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-                `;
+            $('#conjunctivitis-bar-container').show();
           } else if (selectedDiagnosis === "cataract") {
-            document.getElementById('normal-bar-container').style.display = 'flex';
-            document.getElementById('cataract-bar-container').style.display = 'flex';
-            document.getElementById('result-video-container').innerHTML = `
-                    <h4 class="mt-1 text-center">*백내장 예방 영상*</h4>
-                    <iframe width="100%" height="315" src="https://www.youtube.com/embed/ikUj9UGAU7Q?si=ktGU8uqsPC4l9yWl" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-                `;
+            $('#cataract-bar-container').show();
           }
+
+          // 비디오 컨테이너 초기화 및 해당 비디오 표시
+          $('#result-video-container').empty();
+          showVideo(selectedDiagnosis);
         }
 
         // 라디오 버튼 이벤트 리스너
@@ -217,11 +205,6 @@
           $('.image-upload-wrap').removeClass('image-dropping');
         });
 
-        window.onload = function () {
-          document.getElementById('normal-bar').style.display = 'none';
-          document.getElementById('conjunctivitis-bar').style.display = 'none';
-          document.getElementById('cataract-bar').style.display = 'none';
-        };
       </script>
       <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"></script>
       <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
@@ -232,7 +215,7 @@
         // Teachable Machine 모델 URL
         const URL = 'https://teachablemachine.withgoogle.com/models/vdi4AaZai/';
 
-        let model, labelContainer, maxPredictions;
+        let model, maxPredictions;
         let selectedDiagnosis = "";
 
         // 모델 초기화
@@ -243,7 +226,6 @@
           model = await tmImage.load(modelURL, metadataURL);
           maxPredictions = model.getTotalClasses();
         }
-
         // 예측 함수
         async function predict() {
           var image = document.getElementById('eye-image');
@@ -254,14 +236,23 @@
           const cataractProbability = (prediction[2].probability * 100).toFixed(2);
 
           // 바 컨테이너 표시
-          $('#label-container').show();
+          $('#label-container').css('visibility', 'visible');
 
-          // 선택된 진단에 따라 관련 바만 업데이트
+          // 모든 바 업데이트
+          updateBar('normal', normalProbability);
+          updateBar('conjunctivitis', conjunctivitisProbability);
+          updateBar('cataract', cataractProbability);
+
+          // 선택된 진단에 따라 바 표시/숨김
           updateBar('normal', normalProbability);
           if (selectedDiagnosis === "conjunctivitis") {
             updateBar('conjunctivitis', conjunctivitisProbability);
+            $('#cataract-container').css('visibility', 'hidden');
+            $('#conjunctivitis-container').css('visibility', 'visible');
           } else if (selectedDiagnosis === "cataract") {
             updateBar('cataract', cataractProbability);
+            $('#conjunctivitis-container').css('visibility', 'hidden');
+            $('#cataract-container').css('visibility', 'visible');
           }
 
           var resultTitle = "";
@@ -272,12 +263,12 @@
           if (selectedDiagnosis === "conjunctivitis") {
             if (conjunctivitisProbability > 50) {
               resultTitle = "결막염 의심";
-              resultExplain = "눈의 충혈과 분비물이 증가하는 결막염 증상이 의심됩니다.<br>전문의의 진단을 받으시는 것을 권장드립니다";
+              resultExplain = "눈의 충혈과 분비물이 증가하는 결막염 증상이 의심됩니다.<br>이물감이나 눈곱이 있을시<br>전문의의 진단을 받으시는 것을 권장드립니다";
               resultCeleb = "해당 증상이 지속되면 즉시 병원을 방문하여 치료를 받으세요";
               resultClass = "result-conjunctivitis";
             } else {
               resultTitle = "정상";
-              resultExplain = "결막염의 징후가 보이지 않습니다";
+              resultExplain = "결막염의 징후가 보이지 않습니다<br>혹여나 이물감이나 눈곱이 있을시<br><주변 안과 찾기>를 통한 전문의의 진단을 받으시는 것을 권장드립니다";
               resultCeleb = "하지만 정기적인 검진을 통해 눈 건강을 확인해주세요";
               resultClass = "result-normal";
             }
@@ -290,7 +281,7 @@
               resultClass = "result-cataract";
             } else {
               resultTitle = "정상";
-              resultExplain = "백내장의 징후가 보이지 않습니다";
+              resultExplain = "백내장의 징후가 보이지 않습니다<br>혹여나 시력 저하 및 눈부심/단안 복시가 있을시<br><주변 안과 찾기>를 통해 조속한 검진을 권장드립니다";
               resultCeleb = "하지만 정기적인 검진을 통해 눈 건강을 확인해주세요";
               resultClass = "result-normal";
             }
@@ -314,42 +305,40 @@
           selectedDiagnosis = document.querySelector('input[name="diagnosis"]:checked').value;
 
           // 모든 바를 처음에 숨기기
-          document.getElementById('normal-bar-container').style.display = 'none';
-          document.getElementById('conjunctivitis-bar-container').style.display = 'none';
-          document.getElementById('cataract-bar-container').style.display = 'none';
-          document.getElementById('result-video-container').innerHTML = '';  // 비디오 숨기기
+          $('.diagnosis-container').css('visibility', 'hidden');
+          $('#result-video-container').html('');  // 비디오 숨기기
 
           // 선택에 따라 관련 바를 표시하기
           if (selectedDiagnosis === "conjunctivitis") {
-            document.getElementById('normal-bar-container').style.display = 'flex';
-            document.getElementById('conjunctivitis-bar-container').style.display = 'flex';
+            $('#normal-container').css('visibility', 'visible');
+            $('#conjunctivitis-container').css('visibility', 'visible');
             showVideo("conjunctivitis");
           } else if (selectedDiagnosis === "cataract") {
-            document.getElementById('normal-bar-container').style.display = 'flex';
-            document.getElementById('cataract-bar-container').style.display = 'flex';
+            $('#normal-container').css('visibility', 'visible');
+            $('#cataract-container').css('visibility', 'visible');
             showVideo("cataract");
           }
         }
 
         // 바 업데이트 함수
         function updateBar(type, probability) {
-          $(`#${type}-bar`).css('width', probability + '%').show();
+          $(`#${type}-bar`).css('width', probability + '%');
           $(`#${type}-percent`).text(probability + '%');
-          $(`#${type}-bar-container`).show();
+          $(`#${type}-container`).css('visibility', 'visible');
         }
 
         function showVideo(type) {
           const videoContainer = document.getElementById('result-video-container');
           if (type === "conjunctivitis") {
             videoContainer.innerHTML = `
-            <h4 class="mt-1 text-center">*결막염 예방 영상*</h4>
-            <iframe width="100%" height="400" src="https://www.youtube.com/embed/ME4x0KRmiEE?si=NWaWcmT6aPgsxyiZ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-          `;
+      <h4 class="mt-1 text-center">*결막염 예방 영상*</h4>
+      <iframe width="100%" height="400" src="https://www.youtube.com/embed/ME4x0KRmiEE?si=NWaWcmT6aPgsxyiZ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+    `;
           } else if (type === "cataract") {
             videoContainer.innerHTML = `
-            <h4 class="mt-1 text-center">*백내장 예방 영상*</h4>
-            <iframe width="100%" height="400" src="https://www.youtube.com/embed/ikUj9UGAU7Q?si=ktGU8uqsPC4l9yWl" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-          `;
+      <h4 class="mt-1 text-center">*백내장 예방 영상*</h4>
+      <iframe width="100%" height="400" src="https://www.youtube.com/embed/ikUj9UGAU7Q?si=ktGU8uqsPC4l9yWl" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+    `;
           }
         }
 
@@ -394,12 +383,12 @@
           }
         }
 
+
         function removeUpload() {
           $('.file-upload-input').replaceWith($('.file-upload-input').clone());
           $('.file-upload-content').hide();
           $('.image-upload-wrap').show();
         }
-
         // 주변 안과 찾기 기능
         function getUserLocation() {
           if (navigator.geolocation) {
@@ -427,27 +416,26 @@
         // DOM 로드 완료 후 실행
         document.addEventListener('DOMContentLoaded', function () {
           // 라디오 버튼 이벤트 리스너
-          document.querySelectorAll('input[name="diagnosis"]').forEach((elem) => {
-            elem.addEventListener("change", toggleBars);
+          $('input[name="diagnosis"]').on('change', function () {
+            toggleBars();
+            // 이미지가 업로드된 상태라면 예측 다시 실행
+            if ($('.file-upload-image').attr('src')) {
+              predict();
+            }
           });
 
           // 이미지 드래그 앤 드롭 이벤트
-          $('.image-upload-wrap').bind('dragover', function () {
-            $('.image-upload-wrap').addClass('image-dropping');
-          });
-
-          $('.image-upload-wrap').bind('dragleave', function () {
-            $('.image-upload-wrap').removeClass('image-dropping');
+          $('.image-upload-wrap').on('dragover', function () {
+            $(this).addClass('image-dropping');
+          }).on('dragleave', function () {
+            $(this).removeClass('image-dropping');
           });
 
           // 주변 안과 찾기 버튼 이벤트 리스너
-          var findOphthalmologyBtn = document.getElementById('findOphthalmologyBtn');
-          if (findOphthalmologyBtn) {
-            findOphthalmologyBtn.addEventListener('click', getUserLocation);
-          }
+          $('#findOphthalmologyBtn').on('click', getUserLocation);
 
           // 초기 상태 설정
-          $('#label-container').hide();
+          $('.diagnosis-container').css('visibility', 'hidden');
         });
       </script>
 
