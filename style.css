@@ -181,20 +181,29 @@ main {
     width: 90%;
   }
 
+  .eye-label {
+    width: 20%; /* 모바일에서 라벨 너비 증가 */
+    font-size: 1.3rem; /* 폰트 크기 조정 */
+  }
+
   .upload-text {
     width: 80%;
     font-size: 1.2rem;
   }
 
   #label-container {
-    visibility: hidden;
-    width: 100%;
+    visibility: visible;
+    width: 95%;
     max-width: 500px;
     margin: 0 auto;
   }
 
+  .bar-container {
+    width: 80%; /* 모바일에서 바 너비 조정 */
+  }
+
   .diagnosis-container {
-    visibility: hidden;
+    visibility: visible;
     margin-bottom: 10px;
   }
 
