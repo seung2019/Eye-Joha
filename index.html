@@ -10,7 +10,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Gothic+A1&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
   <title>결막염 / 백내장 자가진단 테스트</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style2.css">
+
+  <!-- Mediapipe와 OpenCV.js 추가 -->
+  <script async src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh"></script>
+  <script async src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
+  <script async src="https://cdn.jsdelivr.net/npm/@opencv/opencv.js"></script>
 </head>
 
 <body>
@@ -50,6 +55,16 @@
         <img src="img/upload.svg" class="mt-5 pt-5 upload">
         <h3 class="mb-5 pb-5 pt-4 upload-text">눈 사진을 촬영하시거나 업로드 해주세요!</h3>
       </div>
+    </div>
+
+    <!-- 카메라 캡처 버튼 추가 -->
+    <div class="camera-capture-wrap text-center">
+      <button type="button p-2" class="try-again-btn" onclick="startVideo()">카메라로 촬영하기</button>
+    </div>
+
+    <div id="camera" class="text-center" style="display:none;">
+      <video id="video" width="640" height="480" autoplay></video>
+      <canvas id="canvas" style="display:none;"></canvas>
     </div>
 
     <div class="file-upload-content">
@@ -205,14 +220,6 @@
           $('.image-upload-wrap').removeClass('image-dropping');
         });
 
-      </script>
-      <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"></script>
-      <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
-      <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
-      <script
-        src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
-      <script>
-        // Teachable Machine 모델 URL
         // Teachable Machine 모델 URL
         const URL = 'https://teachablemachine.withgoogle.com/models/vdi4AaZai/';
 
@@ -344,104 +351,86 @@
           }
         }
 
-        // 파일 선택 시 라디오 버튼 선택 확인
-        function checkRadioSelection(input) {
-          const selectedDiagnosis = document.querySelector('input[name="diagnosis"]:checked');
-          if (!selectedDiagnosis) {
-            alert("결막염 또는 백내장 버튼을 클릭해주세요.");
-            removeUpload();
-            return;
-          }
-          readURL(input);
-        }
+        // 카메라 기능 추가
+        let videoElement = document.getElementById('video');
+        let canvasElement = document.getElementById('canvas');
+        let canvasCtx = canvasElement.getContext('2d');
+        let capturing = false;
 
-        function readURL(input) {
-          if (input.files && input.files[0]) {
-            var reader = new FileReader();
-            reader.onload = function (e) {
-              $('.image-upload-wrap').hide();
-              $('#loading').show();
-              $('#result-container').hide(); // 결과 컨테이너 숨기기
-              $('.file-upload-image').attr('src', e.target.result);
-              $('.file-upload-content').show();
-              $('.image-title').html(input.files[0].name);
-            };
-            reader.readAsDataURL(input.files[0]);
+        function startVideo() {
+          document.getElementById('camera').style.display = 'block';
 
-            // 1분 타이머 설정
-            var timeoutId = setTimeout(function () {
-              $('#loading').hide();
-              alert("1분 이상 결과가 나오지 않았습니다. 다른 사진으로 재시도 해주세요.");
-              removeUpload();
-            }, 60000);
-
-            init().then(function () {
-              console.log("Model initialized");
-              predict();
-              clearTimeout(timeoutId);
-            });
-          } else {
-            removeUpload();
-          }
-        }
-
-        function removeUpload() {
-          $('.file-upload-input').replaceWith($('.file-upload-input').clone());
-          $('.file-upload-content').hide();
-          $('.image-upload-wrap').show();
-        }
-
-        // 주변 안과 찾기 기능
-        function getUserLocation() {
-          if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(onSuccessGeolocation, onErrorGeolocation);
-          } else {
-            alert("이 브라우저에서는 위치 정보를 지원하지 않습니다.");
-          }
-        }
-
-        function onSuccessGeolocation(position) {
-          var latitude = position.coords.latitude;
-          var longitude = position.coords.longitude;
-
-          // 네이버 지도에서 '안과' 검색 링크 생성
-          var naverMapUrl = `https://map.naver.com/v5/search/안과?c=${longitude},${latitude},15,0,0,0,dh`;
-
-          // 새로운 탭에서 네이버 지도 페이지 열기
-          window.open(naverMapUrl, '_blank');
-        }
-
-        function onErrorGeolocation() {
-          alert("위치를 가져올 수 없습니다. 브라우저의 위치 접근 권한을 확인해주세요.");
-        }
-
-        // DOM 로드 완료 후 실행
-        document.addEventListener('DOMContentLoaded', function () {
-          // 라디오 버튼 이벤트 리스너
-          $('input[name="diagnosis"]').on('change', function () {
-            toggleBars();
-            // 이미지가 업로드된 상태라면 예측 다시 실행
-            if ($('.file-upload-image').attr('src')) {
-              predict();
-            }
+          const camera = new Camera(videoElement, {
+            onFrame: async () => {
+              if (!capturing) {
+                await faceMesh.send({ image: videoElement });
+              }
+            },
+            width: 640,
+            height: 480
           });
+          camera.start();
+        }
 
-          // 이미지 드래그 앤 드롭 이벤트
-          $('.image-upload-wrap').on('dragover', function () {
-            $(this).addClass('image-dropping');
-          }).on('dragleave', function () {
-            $(this).removeClass('image-dropping');
-          });
-
-          // 주변 안과 찾기 버튼 이벤트 리스너
-          $('#findOphthalmologyBtn').on('click', getUserLocation);
-
-          // 초기 상태 설정
-          $('.diagnosis-container').css('visibility', 'hidden');
+        const faceMesh = new FaceMesh({
+          locateFile: (file) => {
+            return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
+          }
         });
 
-        function gaReload2() {
-          window.location.reload();
+        faceMesh.setOptions({
+          maxNumFaces: 1,
+          refineLandmarks: true,
+          minDetectionConfidence: 0.5,
+          minTrackingConfidence: 0.5
+        });
+
+        faceMesh.onResults(onResults);
+
+        function onResults(results) {
+          if (results.multiFaceLandmarks.length > 0) {
+            const faceLandmarks = results.multiFaceLandmarks[0];
+
+            // 왼쪽 눈과 오른쪽 눈의 좌표를 얻음
+            const leftEye = faceLandmarks[159];
+            const rightEye = faceLandmarks[386];
+
+            const eyeDistance = Math.sqrt(
+              Math.pow((leftEye.x - rightEye.x) * videoElement.width, 2) +
+              Math.pow((leftEye.y - rightEye.y) * videoElement.height, 2)
+            );
+
+            // 눈 사이의 거리가 임계값을 초과하면 사진 촬영
+            if (eyeDistance > 100 && !capturing) {  // 임계값은 카메라에 따라 조정 필요
+              capturePhoto();
+            }
+
+            // 얼굴 랜드마크 그리기
+            canvasCtx.drawImage(
+              results.image, 0, 0, canvasElement.width, canvasElement.height);
+            drawConnectors(canvasCtx, faceLandmarks, FACEMESH_TESSELATION,
+              { color: '#C0C0C070', lineWidth: 1 });
+            drawConnectors(canvasCtx, faceLandmarks, FACEMESH_RIGHT_EYE,
+              { color: '#FF3030' });
+            drawConnectors(canvasCtx, faceLandmarks, FACEMESH_LEFT_EYE,
+              { color: '#30FF30' });
+          }
+        }
+
+        function capturePhoto() {
+          capturing = true;
+          canvasElement.width = videoElement.videoWidth;
+          canvasElement.height = videoElement.videoHeight;
+          canvasCtx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+
+          // 이미지 데이터를 얻고 다른 곳에서 사용
+          let dataURL = canvasElement.toDataURL('image/png');
+          document.getElementById('eye-image').src = dataURL;
+          document.querySelector('.file-upload-content').style.display = 'block';
+          document.getElementById('camera').style.display = 'none';
+
+          // 예측 함수 호출 (AI 모델 적용)
+          predict();
         }
       </script>
 
