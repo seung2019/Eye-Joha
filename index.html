@@ -75,7 +75,7 @@
               </div>
             </div>
           </div>
-        
+
           <!-- 결막염 바 -->
           <div id="conjunctivitis-container" class="diagnosis-container d-flex align-items-center">
             <div class="eye-label mr-2">결막염</div>
@@ -86,7 +86,7 @@
               </div>
             </div>
           </div>
-        
+
           <!-- 백내장 바 -->
           <div id="cataract-container" class="diagnosis-container d-flex align-items-center">
             <div class="eye-label mr-2">백내장</div>
@@ -213,6 +213,7 @@
         src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
       <script>
         // Teachable Machine 모델 URL
+        // Teachable Machine 모델 URL
         const URL = 'https://teachablemachine.withgoogle.com/models/vdi4AaZai/';
 
         let model, maxPredictions;
@@ -226,6 +227,7 @@
           model = await tmImage.load(modelURL, metadataURL);
           maxPredictions = model.getTotalClasses();
         }
+
         // 예측 함수
         async function predict() {
           var image = document.getElementById('eye-image');
@@ -244,13 +246,10 @@
           updateBar('cataract', cataractProbability);
 
           // 선택된 진단에 따라 바 표시/숨김
-          updateBar('normal', normalProbability);
           if (selectedDiagnosis === "conjunctivitis") {
-            updateBar('conjunctivitis', conjunctivitisProbability);
             $('#cataract-container').css('visibility', 'hidden');
             $('#conjunctivitis-container').css('visibility', 'visible');
           } else if (selectedDiagnosis === "cataract") {
-            updateBar('cataract', cataractProbability);
             $('#conjunctivitis-container').css('visibility', 'hidden');
             $('#cataract-container').css('visibility', 'visible');
           }
@@ -308,7 +307,6 @@
           $('.diagnosis-container').css('visibility', 'hidden');
           $('#result-video-container').html('');  // 비디오 숨기기
 
-          // 선택에 따라 관련 바를 표시하기
           if (selectedDiagnosis === "conjunctivitis") {
             $('#normal-container').css('visibility', 'visible');
             $('#conjunctivitis-container').css('visibility', 'visible');
@@ -317,6 +315,10 @@
             $('#normal-container').css('visibility', 'visible');
             $('#cataract-container').css('visibility', 'visible');
             showVideo("cataract");
+          }
+
+          if ($('.file-upload-image').attr('src')) {
+            predict();
           }
         }
 
@@ -383,12 +385,12 @@
           }
         }
 
-
         function removeUpload() {
           $('.file-upload-input').replaceWith($('.file-upload-input').clone());
           $('.file-upload-content').hide();
           $('.image-upload-wrap').show();
         }
+
         // 주변 안과 찾기 기능
         function getUserLocation() {
           if (navigator.geolocation) {
@@ -437,6 +439,10 @@
           // 초기 상태 설정
           $('.diagnosis-container').css('visibility', 'hidden');
         });
+
+        function gaReload2() {
+          window.location.reload();
+        }
       </script>
 
       <footer class="footer">
