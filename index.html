@@ -11,9 +11,6 @@
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
   <title>결막염 / 백내장 자가진단 테스트</title>
   <link rel="stylesheet" href="style.css">
-
-  <!-- OpenCV.js 추가 -->
-  <script async src="https://docs.opencv.org/4.5.2/opencv.js" onload="onOpenCvReady();" type="text/javascript"></script>
 </head>
 
 <body>
@@ -53,12 +50,6 @@
         <img src="img/upload.svg" class="mt-5 pt-5 upload">
         <h3 class="mb-5 pb-5 pt-4 upload-text">눈 사진을 촬영하시거나 업로드 해주세요!</h3>
       </div>
-    </div>
-
-    <div id="camera" class="text-center" style="display:none;">
-      <video id="video" width="640" height="480" autoplay></video>
-      <canvas id="canvas" style="display:none;"></canvas>
-      <div id="status">눈 거리 측정 중...</div>
     </div>
 
     <div class="file-upload-content">
@@ -111,7 +102,8 @@
         <div id="result-video-container"></div> <!-- 추가된 유튜브 영상 표시 영역 -->
 
         <div class="pt-3 image-title-wrap">
-          <button type="button p-2" class="try-again-btn" onclick="gaReload2();" data-toggle="modal" data-target="#adModal">
+          <button type="button p-2" class="try-again-btn" onclick="gaReload2();" data-toggle="modal"
+            data-target="#adModal">
             <span class="try-again-text">다른 사진으로 재시도</span>
           </button>
         </div>
@@ -127,261 +119,337 @@
       <div class="modal fade" id="adModal" tabindex="-1" role="dialog" aria-labelledby="adModalLabel"
         aria-hidden="true">
       </div>
-    </div>
 
-    <script>
-      let videoElement = document.getElementById('video');
-      let canvasElement = document.getElementById('canvas');
-      let statusElement = document.getElementById('status');
-      let canvasCtx = canvasElement.getContext('2d');
-      let faceCascade;
-      let eyeCascade;
-
-      function onOpenCvReady() {
-        console.log('OpenCV.js is ready');
-        faceCascade = new cv.CascadeClassifier();
-        eyeCascade = new cv.CascadeClassifier();
-        
-        // 얼굴 및 눈 검출을 위한 Haar Cascade 파일 로드
-        faceCascade.load('haarcascade_frontalface_default.xml');
-        eyeCascade.load('haarcascade_eye.xml');
-
-        // XML 파일 로드 성공 여부 확인
-        if (faceCascade.empty() || eyeCascade.empty()) {
-          console.error('XML 파일을 로드하는 데 실패했습니다. 파일 경로를 확인해주세요.');
-        } else {
-          console.log('XML 파일이 성공적으로 로드되었습니다.');
+      <script>
+        function gaReload2() {
+          window.location.reload();
         }
-      }
 
-      function startVideo() {
-        document.getElementById('camera').style.display = 'block';
-        navigator.mediaDevices.getUserMedia({ video: true })
-          .then(function(stream) {
-            videoElement.srcObject = stream;
-            videoElement.play();
-            requestAnimationFrame(processVideo);
-          })
-          .catch(function(err) {
-            console.log("An error occurred: " + err);
-          });
-      }
+        function toggleBars() {
+          selectedDiagnosis = document.querySelector('input[name="diagnosis"]:checked').value;
 
-      function processVideo() {
-        canvasCtx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
-        let src = cv.imread(canvasElement);
-        let gray = new cv.Mat();
-        cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
+          // 모든 바를 처음에 숨기기
+          $('#normal-bar-container, #conjunctivitis-bar-container, #cataract-bar-container').hide();
+          // 정상 바는 항상 표시
+          $('#normal-bar-container').show();
 
-        let faces = new cv.RectVector();
-        faceCascade.detectMultiScale(gray, faces);
+          // 선택된 진단에 따라 해당 바 표시
+          if (selectedDiagnosis === "conjunctivitis") {
+            $('#conjunctivitis-bar-container').show();
+          } else if (selectedDiagnosis === "cataract") {
+            $('#cataract-bar-container').show();
+          }
 
-        if (faces.size() > 0) {
-          let face = faces.get(0);
-          let roiGray = gray.roi(face);
-          let eyes = new cv.RectVector();
-          eyeCascade.detectMultiScale(roiGray, eyes);
+          // 비디오 컨테이너 초기화 및 해당 비디오 표시
+          $('#result-video-container').empty();
+          showVideo(selectedDiagnosis);
+        }
 
-          if (eyes.size() >= 2) {
-            let eye1 = eyes.get(0);
-            let eye2 = eyes.get(1);
-            let eyeDistance = Math.sqrt(Math.pow(eye1.x - eye2.x, 2) + Math.pow(eye1.y - eye2.y, 2));
-            
-            // 픽셀 단위의 거리를 실제 거리(cm)로 변환
-            let realDistance = eyeDistance * 0.026458333; // 예시 변환 비율
+        // 라디오 버튼 이벤트 리스너
+        document.querySelectorAll('input[name="diagnosis"]').forEach((elem) => {
+          elem.addEventListener("change", toggleBars);
+        });
 
-            statusElement.textContent = `눈 사이 거리: ${realDistance.toFixed(2)}cm`;
+        // 파일 선택 시 라디오 버튼 선택 확인
+        function checkRadioSelection(input) {
+          const selectedDiagnosis = document.querySelector('input[name="diagnosis"]:checked');
+          if (!selectedDiagnosis) {
+            alert("결막염 또는 백내장 버튼을 클릭해주세요.");
+            removeUpload();
+            return;
+          }
+          readURL(input);
+        }
 
-            if (realDistance >= 4.5 && realDistance <= 5.5) {
-              capturePhoto();
-            }
+        function readURL(input) {
+          if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+              $('.image-upload-wrap').hide();
+              $('#loading').show();
+              $('#result-container').hide(); // 결과 컨테이너 숨기기
+              $('.file-upload-image').attr('src', e.target.result);
+              $('.file-upload-content').show();
+              $('.image-title').html(input.files[0].name);
+            };
+            reader.readAsDataURL(input.files[0]);
+
+            // 1분 타이머 설정
+            var timeoutId = setTimeout(function () {
+              $('#loading').hide();
+              alert("1분 이상 결과가 나오지 않았습니다. 다른 사진으로 재시도 해주세요.");
+              removeUpload();
+            }, 60000);
+
+            init().then(function () {
+              console.log("Model initialized");
+              predict();
+              clearTimeout(timeoutId);
+            });
+          } else {
+            removeUpload();
           }
         }
 
-        src.delete();
-        gray.delete();
-        faces.delete();
+        function removeUpload() {
+          $('.file-upload-input').replaceWith($('.file-upload-input').clone());
+          $('.file-upload-content').hide();
+          $('.image-upload-wrap').show();
+        }
 
-        requestAnimationFrame(processVideo);
-      }
+        $('.image-upload-wrap').bind('dragover', function () {
+          $('.image-upload-wrap').addClass('image-dropping');
+        });
 
-      function capturePhoto() {
-        canvasElement.width = videoElement.videoWidth;
-        canvasElement.height = videoElement.videoHeight;
-        canvasCtx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+        $('.image-upload-wrap').bind('dragleave', function () {
+          $('.image-upload-wrap').removeClass('image-dropping');
+        });
 
-        // OpenCV.js를 사용한 이미지 처리
-        let src = cv.imread(canvasElement);
-        let dst = new cv.Mat();
-        
-        // 그레이스케일 변환
-        cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY);
-        
-        // 히스토그램 평활화
-        cv.equalizeHist(dst, dst);
-        
-        // 결과를 다시 캔버스에 그리기
-        cv.imshow(canvasElement, dst);
-        
-        // 메모리 해제
-        src.delete();
-        dst.delete();
+      </script>
+      <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"></script>
+      <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
+      <script
+        src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
+      <script>
+        // Teachable Machine 모델 URL
+        // Teachable Machine 모델 URL
+        const URL = 'https://teachablemachine.withgoogle.com/models/vdi4AaZai/';
 
-        let dataURL = canvasElement.toDataURL('image/png');
-        document.getElementById('eye-image').src = dataURL;
-        document.querySelector('.file-upload-content').style.display = 'block';
-        document.getElementById('camera').style.display = 'none';
+        let model, maxPredictions;
+        let selectedDiagnosis = "";
 
-        // 예측 함수 호출 (AI 모델 적용)
-        predict();
-      }
+        // 모델 초기화
+        async function init() {
+          const modelURL = URL + 'model.json';
+          const metadataURL = URL + 'metadata.json';
 
-      // readURL 함수 내부의 이미지 처리 부분 수정
-      function readURL(input) {
-        if (input.files && input.files[0]) {
-          var reader = new FileReader();
-          reader.onload = function (e) {
-            $('.image-upload-wrap').hide();
-            $('#loading').show();
-            $('#result-container').hide();
-            
-            // OpenCV.js를 사용한 이미지 처리
-            let img = new Image();
-            img.onload = function() {
-              let src = cv.imread(img);
-              let dst = new cv.Mat();
-              
-              // 그레이스케일 변환
-              cv.cvtColor(src, dst, cv.COLOR_RGBA2GRAY);
-              
-              // 히스토그램 평활화
-              cv.equalizeHist(dst, dst);
-              
-              // 결과를 다시 이미지로 변환
-              cv.imshow(canvasElement, dst);
-              $('.file-upload-image').attr('src', canvasElement.toDataURL('image/png'));
-              
-              // 메모리 해제
-              src.delete();
-              dst.delete();
+          model = await tmImage.load(modelURL, metadataURL);
+          maxPredictions = model.getTotalClasses();
+        }
 
-              $('.file-upload-content').show();
-              $('.image-title').html(input.files[0].name);
+        // 예측 함수
+        async function predict() {
+          var image = document.getElementById('eye-image');
+          const prediction = await model.predict(image, false);
 
-              predict();
+          const normalProbability = (prediction[0].probability * 100).toFixed(2);
+          const conjunctivitisProbability = (prediction[1].probability * 100).toFixed(2);
+          const cataractProbability = (prediction[2].probability * 100).toFixed(2);
+
+          // 바 컨테이너 표시
+          $('#label-container').css('visibility', 'visible');
+
+          // 모든 바 업데이트
+          updateBar('normal', normalProbability);
+          updateBar('conjunctivitis', conjunctivitisProbability);
+          updateBar('cataract', cataractProbability);
+
+          // 선택된 진단에 따라 바 표시/숨김
+          if (selectedDiagnosis === "conjunctivitis") {
+            $('#cataract-container').css('visibility', 'hidden');
+            $('#conjunctivitis-container').css('visibility', 'visible');
+          } else if (selectedDiagnosis === "cataract") {
+            $('#conjunctivitis-container').css('visibility', 'hidden');
+            $('#cataract-container').css('visibility', 'visible');
+          }
+
+          var resultTitle = "";
+          var resultExplain = "";
+          var resultCeleb = "";
+          var resultClass = "";
+
+          if (selectedDiagnosis === "conjunctivitis") {
+            if (conjunctivitisProbability > 50) {
+              resultTitle = "결막염 의심";
+              resultExplain = "눈의 충혈과 분비물이 증가하는 결막염 증상이 의심됩니다.<br>이물감이나 눈곱이 있을시<br>전문의의 진단을 받으시는 것을 권장드립니다";
+              resultCeleb = "해당 증상이 지속되면 즉시 병원을 방문하여 치료를 받으세요";
+              resultClass = "result-conjunctivitis";
+            } else {
+              resultTitle = "정상";
+              resultExplain = "결막염의 징후가 보이지 않습니다<br>혹여나 이물감이나 눈곱이 있을시<br><주변 안과 찾기>를 통한 전문의의 진단을 받으시는 것을 권장드립니다";
+              resultCeleb = "하지만 정기적인 검진을 통해 눈 건강을 확인해주세요";
+              resultClass = "result-normal";
             }
-            img.src = e.target.result;
-          };
-          reader.readAsDataURL(input.files[0]);
-        } else {
-          removeUpload();
+            showVideo("conjunctivitis");
+          } else if (selectedDiagnosis === "cataract") {
+            if (cataractProbability > 50) {
+              resultTitle = "백내장 의심";
+              resultExplain = "백내장 증상이 의심됩니다.<br>시력 저하 및 눈부심/단안 복시가 있을시<br><주변 안과 찾기>를 통해 조속한 검진을 권장드립니다";
+              resultCeleb = "해당 증상이 지속되면 즉시 병원을 방문하여 치료를 받으세요";
+              resultClass = "result-cataract";
+            } else {
+              resultTitle = "정상";
+              resultExplain = "백내장의 징후가 보이지 않습니다<br>혹여나 시력 저하 및 눈부심/단안 복시가 있을시<br><주변 안과 찾기>를 통해 조속한 검진을 권장드립니다";
+              resultCeleb = "하지만 정기적인 검진을 통해 눈 건강을 확인해주세요";
+              resultClass = "result-normal";
+            }
+            showVideo("cataract");
+          }
+
+          var title = "<div class='result-title'>" + resultTitle + "</div>";
+          var explain = "<div class='result-explain pt-2'>" + resultExplain + "</div>";
+          var celeb = "<div class='result-celeb pt-2 pb-2'>" + resultCeleb + "</div>";
+
+          $('.result-message').attr('class', 'result-message ' + resultClass).html(title + explain + celeb);
+
+          // 로딩 숨기기
+          $('#loading').hide();
+
+          // 결과 표시
+          $('#result-container').show();
         }
-      }
 
-      // 기존 코드의 나머지 부분은 그대로 유지
-      function gaReload2() {
-        window.location.reload();
-      }
+        function toggleBars() {
+          selectedDiagnosis = document.querySelector('input[name="diagnosis"]:checked').value;
 
-      function toggleBars() {
-        selectedDiagnosis = document.querySelector('input[name="diagnosis"]:checked').value;
+          // 모든 바를 처음에 숨기기
+          $('.diagnosis-container').css('visibility', 'hidden');
+          $('#result-video-container').html('');  // 비디오 숨기기
 
-        // 모든 바를 처음에 숨기기
-        $('#normal-bar-container, #conjunctivitis-bar-container, #cataract-bar-container').hide();
-        // 정상 바는 항상 표시
-        $('#normal-bar-container').show();
+          if (selectedDiagnosis === "conjunctivitis") {
+            $('#normal-container').css('visibility', 'visible');
+            $('#conjunctivitis-container').css('visibility', 'visible');
+            showVideo("conjunctivitis");
+          } else if (selectedDiagnosis === "cataract") {
+            $('#normal-container').css('visibility', 'visible');
+            $('#cataract-container').css('visibility', 'visible');
+            showVideo("cataract");
+          }
 
-        // 선택된 진단에 따라 해당 바 표시
-        if (selectedDiagnosis === "conjunctivitis") {
-          $('#conjunctivitis-bar-container').show();
-        } else if (selectedDiagnosis === "cataract") {
-          $('#cataract-bar-container').show();
-        }
-
-        // 비디오 컨테이너 초기화 및 해당 비디오 표시
-        $('#result-video-container').empty();
-        showVideo(selectedDiagnosis);
-      }
-
-      // 라디오 버튼 이벤트 리스너
-      document.querySelectorAll('input[name="diagnosis"]').forEach((elem) => {
-        elem.addEventListener("change", toggleBars);
-      });
-
-      // 파일 선택 시 라디오 버튼 선택 확인
-      function checkRadioSelection(input) {
-        const selectedDiagnosis = document.querySelector('input[name="diagnosis"]:checked');
-        if (!selectedDiagnosis) {
-          alert("결막염 또는 백내장 버튼을 클릭해주세요.");
-          removeUpload();
-          return;
-        }
-        readURL(input);
-      }
-
-      $('.image-upload-wrap').bind('dragover', function () {
-        $('.image-upload-wrap').addClass('image-dropping');
-      });
-
-      $('.image-upload-wrap').bind('dragleave', function () {
-        $('.image-upload-wrap').removeClass('image-dropping');
-      });
-
-      // 주변 안과 찾기 기능
-      function getUserLocation() {
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(onSuccessGeolocation, onErrorGeolocation);
-        } else {
-          alert("이 브라우저에서는 위치 정보를 지원하지 않습니다.");
-        }
-      }
-
-      function onSuccessGeolocation(position) {
-        var latitude = position.coords.latitude;
-        var longitude = position.coords.longitude;
-
-        // 네이버 지도에서 '안과' 검색 링크 생성
-        var naverMapUrl = `https://map.naver.com/v5/search/안과?c=${longitude},${latitude},15,0,0,0,dh`;
-
-        // 새로운 탭에서 네이버 지도 페이지 열기
-        window.open(naverMapUrl, '_blank');
-      }
-
-      function onErrorGeolocation() {
-        alert("위치를 가져올 수 없습니다. 브라우저의 위치 접근 권한을 확인해주세요.");
-      }
-
-      // DOM 로드 완료 후 실행
-      document.addEventListener('DOMContentLoaded', function () {
-        // 라디오 버튼 이벤트 리스너
-        $('input[name="diagnosis"]').on('change', function () {
-          toggleBars();
-          // 이미지가 업로드된 상태라면 예측 다시 실행
           if ($('.file-upload-image').attr('src')) {
             predict();
           }
+        }
+
+        // 바 업데이트 함수
+        function updateBar(type, probability) {
+          $(`#${type}-bar`).css('width', probability + '%');
+          $(`#${type}-percent`).text(probability + '%');
+          $(`#${type}-container`).css('visibility', 'visible');
+        }
+
+        function showVideo(type) {
+          const videoContainer = document.getElementById('result-video-container');
+          if (type === "conjunctivitis") {
+            videoContainer.innerHTML = `
+      <h4 class="mt-1 text-center">*결막염 예방 영상*</h4>
+      <iframe width="100%" height="400" src="https://www.youtube.com/embed/ME4x0KRmiEE?si=NWaWcmT6aPgsxyiZ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+    `;
+          } else if (type === "cataract") {
+            videoContainer.innerHTML = `
+      <h4 class="mt-1 text-center">*백내장 예방 영상*</h4>
+      <iframe width="100%" height="400" src="https://www.youtube.com/embed/ikUj9UGAU7Q?si=ktGU8uqsPC4l9yWl" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+    `;
+          }
+        }
+
+        // 파일 선택 시 라디오 버튼 선택 확인
+        function checkRadioSelection(input) {
+          const selectedDiagnosis = document.querySelector('input[name="diagnosis"]:checked');
+          if (!selectedDiagnosis) {
+            alert("결막염 또는 백내장 버튼을 클릭해주세요.");
+            removeUpload();
+            return;
+          }
+          readURL(input);
+        }
+
+        function readURL(input) {
+          if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+              $('.image-upload-wrap').hide();
+              $('#loading').show();
+              $('#result-container').hide(); // 결과 컨테이너 숨기기
+              $('.file-upload-image').attr('src', e.target.result);
+              $('.file-upload-content').show();
+              $('.image-title').html(input.files[0].name);
+            };
+            reader.readAsDataURL(input.files[0]);
+
+            // 1분 타이머 설정
+            var timeoutId = setTimeout(function () {
+              $('#loading').hide();
+              alert("1분 이상 결과가 나오지 않았습니다. 다른 사진으로 재시도 해주세요.");
+              removeUpload();
+            }, 60000);
+
+            init().then(function () {
+              console.log("Model initialized");
+              predict();
+              clearTimeout(timeoutId);
+            });
+          } else {
+            removeUpload();
+          }
+        }
+
+        function removeUpload() {
+          $('.file-upload-input').replaceWith($('.file-upload-input').clone());
+          $('.file-upload-content').hide();
+          $('.image-upload-wrap').show();
+        }
+
+        // 주변 안과 찾기 기능
+        function getUserLocation() {
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(onSuccessGeolocation, onErrorGeolocation);
+          } else {
+            alert("이 브라우저에서는 위치 정보를 지원하지 않습니다.");
+          }
+        }
+
+        function onSuccessGeolocation(position) {
+          var latitude = position.coords.latitude;
+          var longitude = position.coords.longitude;
+
+          // 네이버 지도에서 '안과' 검색 링크 생성
+          var naverMapUrl = `https://map.naver.com/v5/search/안과?c=${longitude},${latitude},15,0,0,0,dh`;
+
+          // 새로운 탭에서 네이버 지도 페이지 열기
+          window.open(naverMapUrl, '_blank');
+        }
+
+        function onErrorGeolocation() {
+          alert("위치를 가져올 수 없습니다. 브라우저의 위치 접근 권한을 확인해주세요.");
+        }
+
+        // DOM 로드 완료 후 실행
+        document.addEventListener('DOMContentLoaded', function () {
+          // 라디오 버튼 이벤트 리스너
+          $('input[name="diagnosis"]').on('change', function () {
+            toggleBars();
+            // 이미지가 업로드된 상태라면 예측 다시 실행
+            if ($('.file-upload-image').attr('src')) {
+              predict();
+            }
+          });
+
+          // 이미지 드래그 앤 드롭 이벤트
+          $('.image-upload-wrap').on('dragover', function () {
+            $(this).addClass('image-dropping');
+          }).on('dragleave', function () {
+            $(this).removeClass('image-dropping');
+          });
+
+          // 주변 안과 찾기 버튼 이벤트 리스너
+          $('#findOphthalmologyBtn').on('click', getUserLocation);
+
+          // 초기 상태 설정
+          $('.diagnosis-container').css('visibility', 'hidden');
         });
 
-        // 이미지 드래그 앤 드롭 이벤트
-        $('.image-upload-wrap').on('dragover', function () {
-          $(this).addClass('image-dropping');
-        }).on('dragleave', function () {
-          $(this).removeClass('image-dropping');
-        });
+        function gaReload2() {
+          window.location.reload();
+        }
+      </script>
 
-        // 주변 안과 찾기 버튼 이벤트 리스너
-        $('#findOphthalmologyBtn').on('click', getUserLocation);
-
-        // 초기 상태 설정
-        $('.diagnosis-container').css('visibility', 'hidden');
-      });
-    </script>
-
-    <footer class="footer">
-      <div>
-        <p>@ JUDUIT 2024. All Rights Reserved.</p>
-      </div>
-    </footer>
+      <footer class="footer">
+        <div>
+          <p>@ JUDUIT 2024. All Rights Reserved.</p>
+        </div>
+      </footer>
 
 </body>
 
